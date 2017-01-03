@@ -1,0 +1,17 @@
+language: go
+sudo: false
+
+go:
+  - 1.x
+  - master
+
+install:
+  - go get github.com/kardianos/osext
+  - go get github.com/gorilla/securecookie
+  - go get github.com/daaku/go.zipexe
+  - go get github.com/boltdb/bolt
+  - go build ./...
+
+script:
+  - test -z "$(gofmt -l . | tee /dev/stderr)"
+  - go test -v ./...

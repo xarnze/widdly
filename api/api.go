@@ -15,7 +15,6 @@
 package api
 
 import (
-	"bytes"
 	"crypto/md5"
 	"encoding/json"
 	"fmt"
@@ -145,27 +144,11 @@ func list(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var buf bytes.Buffer
-	buf.WriteByte('[')
-	sep := ""
-	for _, t := range tiddlers {
-		if len(t.Meta) == 0 {
-			continue
-		}
-
-		json, err := t.MarshalJSON()
-		if err != nil {
-			continue
-		}
-
-		buf.WriteString(sep)
-		sep = ","
-		buf.Write(json)
-	}
-	buf.WriteByte(']')
-
 	w.Header().Set("Content-Type", "application/json")
-	w.Write(buf.Bytes())
+	err = json.NewEncoder(w).Encode(tiddlers)
+	if err != nil {
+		log.Println("ERR", err)
+	}
 }
 
 // getTiddler serves a fat tiddler.

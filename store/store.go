@@ -58,6 +58,7 @@ type TiddlerStore interface {
 	// Most tiddlers should be returned skinny, except for special tiddlers,
 	// like global macros (tiddlers tagged $:/tags/Macro), which should be
 	// returned fat.
+	// All must not return deleted tiddlers.
 	All(ctx context.Context) ([]Tiddler, error)
 
 	// Put saves tiddler to the store and returns its revision.

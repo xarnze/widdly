@@ -102,7 +102,6 @@ func TestList(t *testing.T) {
 		all: func(context.Context) ([]store.Tiddler, error) {
 			return []store.Tiddler{
 				{"tiddler1", []byte(`{"author":"robpike"}`), "", false},
-				{"removed_tiddler", []byte{}, "", false},
 				{"tiddler2", []byte(`{"author":"bradfitz"}`), "text", false},
 			}, nil
 		},
@@ -117,7 +116,7 @@ func TestList(t *testing.T) {
 	if want := "application/json"; ct != want {
 		t.Errorf("want %s, got %v", want, ct)
 	}
-	body := w.Body.String()
+	body := strings.TrimRight(w.Body.String(), "\n")
 	if want := `[{"author":"robpike"},{"author":"bradfitz"}]`; body != want {
 		t.Errorf("want %q, got %q", want, body)
 	}

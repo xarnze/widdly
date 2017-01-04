@@ -4,6 +4,10 @@ widdly [![License](http://img.shields.io/:license-gpl3-blue.svg)](http://www.gnu
 This is a minimal self-hosted app, written in Go, that can serve as a backend
 for a personal [TiddlyWiki](http://tiddlywiki.com/).
 
+## Requirements
+
+Go 1.7+
+
 ## Install
 
     go get github.com/opennota/widdly

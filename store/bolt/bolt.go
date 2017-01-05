@@ -91,7 +91,7 @@ func copyOf(p []byte) []byte {
 // All retrieves all the tiddlers (mostly skinny) from the store.
 // Special tiddlers (like global macros) are returned fat.
 func (s *boltStore) All(_ context.Context) ([]store.Tiddler, error) {
-	var tiddlers []store.Tiddler
+	tiddlers := []store.Tiddler{}
 	err := s.db.View(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte("tiddler"))
 		c := b.Cursor()

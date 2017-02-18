@@ -17,7 +17,6 @@ package main
 import (
 	"bytes"
 	"compress/flate"
-	"crypto/subtle"
 	"flag"
 	"io/ioutil"
 	"log"
@@ -27,6 +26,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"golang.org/x/crypto/bcrypt"
 
 	"github.com/daaku/go.zipexe"
 	"github.com/gorilla/securecookie"
@@ -44,7 +45,23 @@ var (
 
 	hashKey      = securecookie.GenerateRandomKey(64)
 	secureCookie = securecookie.New(hashKey, nil)
+
+	bcryptCost int
 )
+
+func init() {
+	// Select an appropriate bcrypt cost.
+	for cost := bcrypt.MinCost; cost <= bcrypt.MaxCost; cost++ {
+		start := time.Now()
+		if _, err := bcrypt.GenerateFromPassword([]byte("qwerty"), cost); err != nil {
+			log.Fatal(err)
+		}
+		if time.Since(start) > time.Second {
+			bcryptCost = cost - 1
+			break
+		}
+	}
+}
 
 func main() {
 	flag.Parse()
@@ -72,6 +89,10 @@ func main() {
 
 	// Optionally protect by a password.
 	if *password != "" {
+		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(*password), bcryptCost)
+		if err != nil {
+			log.Fatal(err)
+		}
 		// Set api.Authenticate and provide a login handler for simple password authentication.
 		api.Authenticate = func(w http.ResponseWriter, r *http.Request) {
 			c, err := r.Cookie("widdly_auth")
@@ -95,7 +116,7 @@ func main() {
 							</body>
 							</html>`))
 			case "POST":
-				if subtle.ConstantTimeCompare([]byte(r.FormValue("password")), []byte(*password)) != 1 {
+				if bcrypt.CompareHashAndPassword(hashedPassword, []byte(r.FormValue("password"))) != nil {
 					http.Redirect(w, r, "/login", http.StatusFound)
 				} else if encoded, err := secureCookie.Encode("widdly_auth", time.Now()); err == nil {
 					http.SetCookie(w, &http.Cookie{

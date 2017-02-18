@@ -45,23 +45,7 @@ var (
 
 	hashKey      = securecookie.GenerateRandomKey(64)
 	secureCookie = securecookie.New(hashKey, nil)
-
-	bcryptCost int
 )
-
-func init() {
-	// Select an appropriate bcrypt cost.
-	for cost := bcrypt.MinCost; cost <= bcrypt.MaxCost; cost++ {
-		start := time.Now()
-		if _, err := bcrypt.GenerateFromPassword([]byte("qwerty"), cost); err != nil {
-			log.Fatal(err)
-		}
-		if time.Since(start) > time.Second {
-			bcryptCost = cost - 1
-			break
-		}
-	}
-}
 
 func main() {
 	flag.Parse()
@@ -89,6 +73,19 @@ func main() {
 
 	// Optionally protect by a password.
 	if *password != "" {
+		// Select an appropriate bcrypt cost.
+		bcryptCost := bcrypt.DefaultCost
+		for cost := bcrypt.MinCost; cost <= bcrypt.MaxCost; cost++ {
+			start := time.Now()
+			if _, err := bcrypt.GenerateFromPassword([]byte("qwerty"), cost); err != nil {
+				log.Fatal(err)
+			}
+			if time.Since(start) > time.Second {
+				bcryptCost = cost - 1
+				break
+			}
+		}
+
 		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(*password), bcryptCost)
 		if err != nil {
 			log.Fatal(err)

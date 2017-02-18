@@ -10,6 +10,7 @@ install:
   - go get github.com/gorilla/securecookie
   - go get github.com/daaku/go.zipexe
   - go get github.com/boltdb/bolt
+  - go get golang.org/x/crypto/bcrypt
   - go build ./...
 
 script:

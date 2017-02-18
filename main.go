@@ -75,7 +75,7 @@ func main() {
 	if *password != "" {
 		// Select an appropriate bcrypt cost.
 		bcryptCost := bcrypt.DefaultCost
-		for cost := bcrypt.MinCost; cost <= bcrypt.MaxCost; cost++ {
+		for cost := bcrypt.MinCost + 1; cost <= bcrypt.MaxCost; cost++ {
 			start := time.Now()
 			if _, err := bcrypt.GenerateFromPassword([]byte("qwerty"), cost); err != nil {
 				log.Fatal(err)

@@ -20,7 +20,7 @@ into the executable by running `zip -9 - index.html | cat >> widdly`). Run:
     widdly -http :1337 -p letmein -db /path/to/the/database
 
 - `-http :1337` - listen on port 1337 (by default port 8080 on localhost)
-- `-p letmein` - protect by the password (optional)
+- `-p letmein` - protect by the password (optional); the username will be `widdly`.
 - `-db /path/to/the/database` - explicitly specify which file to use for the
   database (by default `widdly.db` in the current directory)
 

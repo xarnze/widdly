@@ -17,6 +17,7 @@ package main
 import (
 	"bytes"
 	"compress/flate"
+	"crypto/subtle"
 	"flag"
 	"io/ioutil"
 	"log"
@@ -40,7 +41,7 @@ import (
 
 var (
 	addr       = flag.String("http", "127.0.0.1:8080", "HTTP service address")
-	password   = flag.String("p", "", "Optional password to protect the wiki")
+	password   = flag.String("p", "", "Optional password to protect the wiki (the username is widdly)")
 	dataSource = flag.String("db", "widdly.db", "Database file")
 
 	hashKey      = securecookie.GenerateRandomKey(64)
@@ -92,41 +93,13 @@ func main() {
 		}
 		// Set api.Authenticate and provide a login handler for simple password authentication.
 		api.Authenticate = func(w http.ResponseWriter, r *http.Request) {
-			c, err := r.Cookie("widdly_auth")
-			if err != nil {
-				http.Redirect(w, r, "/login", http.StatusFound)
-				return
-			}
-			var t time.Time
-			if err = secureCookie.Decode("widdly_auth", c.Value, &t); err != nil {
-				http.Redirect(w, r, "/login", http.StatusFound)
+			user, pass, ok := r.BasicAuth()
+			if !ok || bcrypt.CompareHashAndPassword(hashedPassword, []byte(pass)) != nil ||
+				subtle.ConstantTimeCompare([]byte(user), []byte("widdly")) != 1 { // DON'T use subtle.ConstantTimeCompare like this!
+				w.Header().Add("Www-Authenticate", `Basic realm="Who are you?"`)
+				w.WriteHeader(http.StatusUnauthorized)
 			}
 		}
-		http.HandleFunc("/login", func(w http.ResponseWriter, r *http.Request) {
-			switch r.Method {
-			case "GET":
-				w.Header().Add("Content-Type", "text/html")
-				w.Write([]byte(`<html><body><form action="/login" method="POST">
-							<input type="password" name="password" autofocus>
-							<input type="submit" value="Let me in!">
-							</form>
-							</body>
-							</html>`))
-			case "POST":
-				if bcrypt.CompareHashAndPassword(hashedPassword, []byte(r.FormValue("password"))) != nil {
-					http.Redirect(w, r, "/login", http.StatusFound)
-				} else if encoded, err := secureCookie.Encode("widdly_auth", time.Now()); err == nil {
-					http.SetCookie(w, &http.Cookie{
-						Name:  "widdly_auth",
-						Value: encoded,
-						Path:  "/",
-					})
-					http.Redirect(w, r, "/", http.StatusFound)
-				}
-			default:
-				http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
-			}
-		})
 	}
 
 	log.Fatal(http.ListenAndServe(*addr, nil))

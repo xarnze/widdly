@@ -8,11 +8,11 @@ for a personal [TiddlyWiki](http://tiddlywiki.com/).
 
 Go 1.7+
 
-## Install
+## Installation
 
     go get github.com/opennota/widdly
 
-## Use
+## Usage
 
 Put `index.html` next to the executable (or, alternatively, embed `index.html`
 into the executable by running `zip -9 - index.html | cat >> widdly`). Run:

@@ -46,7 +46,7 @@ func MustOpen(dataSource string) store.TiddlerStore {
 		panic(err)
 	}
 	initStmt := `
-		CREATE TABLE tiddler (id integer not null primary key AUTOINCREMENT, meta text, content text, revision integer);
+		CREATE TABLE tiddler (id integer not null primary key AUTOINCREMENT, title text, meta text, content text, revision integer);
 	`
 	_, err = db.Exec(initStmt)
 	return &sqliteStore{db}
@@ -55,10 +55,10 @@ func MustOpen(dataSource string) store.TiddlerStore {
 // Get retrieves a tiddler from the store by key (title).
 func (s *sqliteStore) Get(_ context.Context, key string) (store.Tiddler, error) {
 	t := store.Tiddler{WithText: true}
-	getStmt, err := s.db.Prepare(`SELECT meta, content FROM tiddler WHERE meta LIKE ? LIMIT 1`)
+	getStmt, err := s.db.Prepare(`SELECT meta, content FROM tiddler WHERE title = ? ORDER BY revision DESC LIMIT 1`)
 	var meta string
 	var content string
-	err = getStmt.QueryRow("%" + key + "%").Scan(&meta, &content)
+	err = getStmt.QueryRow(key).Scan(&meta, &content)
 	if err != nil {
 		return store.Tiddler{}, err
 	}
@@ -102,7 +102,7 @@ func (s *sqliteStore) All(_ context.Context) ([]store.Tiddler, error) {
 
 func getLastRevision(db *sql.DB, mkey string) int {
 	var revision int
-	getStmt, err := db.Prepare(`SELECT revision FROM tiddler WHERE meta LIKE ? LIMIT 1`)
+	getStmt, err := db.Prepare(`SELECT revision FROM tiddler WHERE title = ? ORDER BY revision DESC LIMIT 1`)
 	err = getStmt.QueryRow(mkey).Scan(&revision)
 	if err == nil {
 		return 1
@@ -119,11 +119,11 @@ func (s *sqliteStore) Put(ctx context.Context, tiddler store.Tiddler) (int, erro
 		return 0, err
 	}
 	rev := getLastRevision(s.db, tiddler.Key)
-	insertStmt, err := s.db.Prepare(`INSERT INTO tiddler(meta, content, revision) VALUES (?, ?, ?)`)
+	insertStmt, err := s.db.Prepare(`INSERT INTO tiddler(title, meta, content, revision) VALUES (?, ?, ?, ?)`)
 	if err != nil {
 		return 0, err
 	}
-	_, err = insertStmt.Exec(tiddler.Meta, tiddler.Text, rev)
+	_, err = insertStmt.Exec(tiddler.Key, tiddler.Meta, tiddler.Text, rev+1)
 	if err != nil {
 		return 0, err
 	}
@@ -132,7 +132,7 @@ func (s *sqliteStore) Put(ctx context.Context, tiddler store.Tiddler) (int, erro
 
 // Delete deletes a tiddler with the given key (title) from the store.
 func (s *sqliteStore) Delete(ctx context.Context, key string) error {
-	deleteStmt, err := s.db.Prepare(`DELETE FROM tiddler WHERE meta LIKE ?`)
+	deleteStmt, err := s.db.Prepare(`DELETE FROM tiddler WHERE title = ?`)
 	if err != nil {
 		return err
 	}

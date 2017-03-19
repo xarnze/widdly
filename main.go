@@ -36,7 +36,8 @@ import (
 
 	"github.com/opennota/widdly/api"
 	"github.com/opennota/widdly/store"
-	_ "github.com/opennota/widdly/store/bolt"
+	_ "./store/sqlite"
+	//_ "github.com/opennota/widdly/store/bolt"
 )
 
 var (

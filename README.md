@@ -34,6 +34,14 @@ Open `editions/empty/output/index.html` in a browser and install some plugins
 (at the very least, the "TiddlyWeb and TiddlySpace components" plugin). You
 will be prompted to save the updated index.html.
 
+## Changing the storage engine
+
+Currently the only way to chnage the storage engine is to chnage line 40 in main.go to import a different storage engine and re-build the default is sqlite but you can also use:
+
+- _ "./store/flatfile" 
+- _ "./store/sqlite"
+_ "./store/bolt"
+
 ## Similar projects
 
 For a Google App Engine TiddlyWiki server, look at [rsc/tiddly](https://github.com/rsc/tiddly).

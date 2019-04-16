@@ -102,7 +102,7 @@ func main() {
 			}
 		}
 	}
-
+	log.Printf("[server] HTTPS server listening on 127.0.0.1%v", *addr)
 	log.Fatal(http.ListenAndServe(*addr, nil))
 }
 
